@@ -24,11 +24,16 @@ vector<Node*> RandomForestCreater(vector<vector<double>> dataset)
 	//randomly select features (non-duplicate)
 	vector<int> features(dataset[0].size() - 1);
 	for (int i = 0; i < dataset[0].size() - 1; i++) features[i] = i;
+
+//#pragma omp parallel
+//#pragma omp for 
+
 	for (int i = 0; i < numTree; i++)
 	{
 		//generate a list of selected features
-		shuffle(features.begin(), features.end(), gen);
-		vector<int> selectedFeature(features.begin(), features.begin() + numSelectFeature);
+		vector<int> features2 = features;
+		shuffle(features2.begin(), features2.end(), gen);
+		vector<int> selectedFeature(features2.begin(), features2.begin() + numSelectFeature);
 		
 		//randomly select samples (with duplicate)
 		uniform_int_distribution<int> dis(0, dataset.size() - 1);
