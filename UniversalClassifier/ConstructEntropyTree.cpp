@@ -29,7 +29,7 @@ struct Compare
 };
 
 //Usage: Find a best way to split dataset with specific feature
-Info calculateGain(vector<vector<double>> dataset)
+Info CalculateGain(vector<vector<double>> dataset, string mode, vector<int> selectedFeature)
 {
 	
 	
@@ -55,12 +55,24 @@ Info calculateGain(vector<vector<double>> dataset)
 		counts[i] /= (double)dataset.size();
 	}
 
-	//Calculate entropy (for whole dataset)
+	//Calculate entropy or gini(for whole dataset)
 	double entropy = 0.0;
-	for (int i = 0; i < counts.size(); i++)
+	if (mode == "entropy")
 	{
-		if (counts[i] != 0.0)  entropy += -(counts[i] * log2(counts[i]));
+		for (int i = 0; i < counts.size(); i++)
+		{
+			if (counts[i] != 0.0)  entropy += -(counts[i] * log2(counts[i]));
+		}
 	}
+	else if (mode == "gini")
+	{
+		for (int i = 0; i < counts.size(); i++)
+		{
+			if (counts[i] != 0.0)  entropy += (counts[i] * counts[i]);
+		}
+		entropy = 1.0 - entropy;
+	}
+	
 	
 	//Place to store gains [split place][feature]
 	vector<vector<double>> gains;
@@ -71,10 +83,10 @@ Info calculateGain(vector<vector<double>> dataset)
 	}
 
 	//Iterate with different features
-	for (int i = 0; i < dataset[0].size() - 1; i++)
+	for (int i = 0; i < selectedFeature.size(); i++)
 	{
 		//Sort the dataset with specific feature
-		sort(dataset.begin(), dataset.end(), Compare(i));
+		sort(dataset.begin(), dataset.end(), Compare(selectedFeature[i]));
 		
 		//Iterate with different changed points
 		for (int j = 0; j < dataset.size() - 1; j++)
@@ -108,17 +120,31 @@ Info calculateGain(vector<vector<double>> dataset)
 				highCount[k] /= (double)highData.size();
 			}
 
-			//Calculate lower and higher Entropy
+			//Calculate lower and higher Entropy (or gini)
 			double lowEntropy = 0, highEntropy = 0;
-			for (int k = 0; k < counts.size(); k++)
+			if (mode == "entropy")
 			{
-				if (lowCount[k] != 0) lowEntropy += -(lowCount[k] * log2(lowCount[k]));
-				if (highCount[k] != 0) highEntropy += -(highCount[k] * log2(highCount[k]));
+				for (int k = 0; k < counts.size(); k++)
+				{
+					if (lowCount[k] != 0) lowEntropy += -(lowCount[k] * log2(lowCount[k]));
+					if (highCount[k] != 0) highEntropy += -(highCount[k] * log2(highCount[k]));
+				}
 			}
-
+			else if (mode == "gini")
+			{
+				for (int k = 0; k < counts.size(); k++)
+				{
+					if (lowCount[k] != 0) lowEntropy += (lowCount[k] * lowCount[k]);
+					if (highCount[k] != 0) highEntropy += (highCount[k] * highCount[k]);
+				}
+				lowEntropy = 1.0 - lowEntropy;
+				highEntropy = 1.0 - highEntropy;
+			}
+			
 			//Calculate remainder
 			double remainder = ((highData.size() / (double)dataset.size()) * highEntropy) + ((lowData.size() / (double)dataset.size()) * lowEntropy);
-			gains[j][i] = entropy - remainder; //Again, gain[split place][feature]
+			//Calculate gain
+			gains[j][selectedFeature[i]] = entropy - remainder; //Again, gain[split place][feature]
 		}
 	}
 
@@ -143,9 +169,9 @@ Info calculateGain(vector<vector<double>> dataset)
 
 
 //
-struct Node *constructEntropyTree(vector<vector<double>> dataset, int layer)
+struct Node *ConstructTree(vector<vector<double>> dataset, int layer, string mode, vector<int> selectedFeature)
 {
-	cout <<  "-";
+	
 	struct Node* thisNode = new Node;
 
 	//Check whether is leaf or not, if yes, return
@@ -166,7 +192,7 @@ struct Node *constructEntropyTree(vector<vector<double>> dataset, int layer)
 	}
 
 	//Get the selected feature and split position which have maximum gain
-	Info info = calculateGain(dataset);
+	Info info = CalculateGain(dataset, mode, selectedFeature);
 
 	//Split the dataset into higher and lower part, and complete this node's properties.
 	sort(dataset.begin(), dataset.end(), Compare(info.selectedFeature));
@@ -175,8 +201,8 @@ struct Node *constructEntropyTree(vector<vector<double>> dataset, int layer)
 	thisNode->layer = layer;
 	vector<vector<double>> lowerData(dataset.begin(), dataset.begin() + info.gapPosition + 1);
 	vector<vector<double>> higherData(dataset.begin() + info.gapPosition + 1, dataset.end());
-	thisNode->lowerNode = constructEntropyTree(lowerData, layer + 1);
-	thisNode->higherNode = constructEntropyTree(higherData, layer + 1);
+	thisNode->lowerNode = ConstructTree(lowerData, layer + 1, mode, selectedFeature);
+	thisNode->higherNode = ConstructTree(higherData, layer + 1, mode, selectedFeature);
 
 	return thisNode;
 	

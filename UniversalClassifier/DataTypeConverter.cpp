@@ -51,5 +51,6 @@ vector<vector<double>> DataTypeConverter::convertToDouble(vector<vector<string>>
 		}
 
 	}
+
 	return convertedInput;
 }

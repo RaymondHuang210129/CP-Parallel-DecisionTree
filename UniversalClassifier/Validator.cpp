@@ -12,33 +12,41 @@ Validator::Validator()
 }
 
 
-vector<vector<double>> Validator::getResult(struct Node* tree, vector<vector<double>> dataset)
+vector<vector<double>> Validator::getResult(vector<Node*> trees, vector<vector<double>> dataset)
 {
 	//result: 0->prediction 1->fact
 	vector<vector<double>> result;
 	result.resize(dataset.size());
+
+	//vote data structure, initalize to 0 for all classes
+	
+	
 	for (int i = 0; i < dataset.size(); i++)
 	{
-		//Start from the root of tree
-		struct Node* currentLocation = tree;
-		while(1)
+		vector<int> vote(dataset.size() - 1, 0);
+		//Iterate with different trees
+		for (int j = 0; j < trees.size(); j++)
 		{
-			if (currentLocation->isLeaf == true)//Reach the leaf
+			//Start from the root of tree
+			Node* currentLocation = trees[j];
+			while (1)
 			{
-				//Push predicted value and 
-				vector<double> buff = { currentLocation->leafClass, dataset[i][dataset[i].size() - 1] };
-				result[i]= buff;
-				break;
-			}
-			if (dataset[i][currentLocation->selectedFeature] > currentLocation->gapValue)
-			{
-				currentLocation = currentLocation->higherNode;
-			}
-			else
-			{
-				currentLocation = currentLocation->lowerNode;
+				if (currentLocation->isLeaf)//Reach the leaf
+				{
+					//vote
+					vote[currentLocation->leafClass]++;
+					break;
+				}
+				if (dataset[i][currentLocation->selectedFeature] > currentLocation->gapValue)
+					currentLocation = currentLocation->higherNode;
+				else
+					currentLocation = currentLocation->lowerNode;
 			}
 		}
+
+		//find the class with maximum vote and put into result
+		result[i] = { (double)distance(vote.begin(), max_element(vote.begin(), vote.end())), dataset[i][dataset[0].size() - 1] };
+
 	}
 	return result;
 }
