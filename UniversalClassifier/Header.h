@@ -61,4 +61,3 @@ struct Node
 
 vector<Node*> RandomForestCreater(vector<vector<double>>);
 
-
