@@ -4,6 +4,7 @@
 #include "Header.h"
 #include <time.h>
 #include <vector>
+#include <cmath>
 
 
 using namespace std;
@@ -116,7 +117,7 @@ int main(int argc, char *argv[])
 	rate = 0.0;
 	for (int k = 0; k < validationDataset.size(); k++)
 	{
-		if (abs(result[k][0] - result[k][1]) <= 1.0)
+		if (fabs(result[k][0] - result[k][1]) <= 1.0)
 		{
 			rate += 1.0;
 		}
@@ -127,7 +128,7 @@ int main(int argc, char *argv[])
 	rate = 0.0;
 	for (int k = 0; k < validationDataset.size(); k++)
 	{
-		if (abs(result[k][0] - result[k][1]) <= 2.0)
+		if (fabs(result[k][0] - result[k][1]) <= 2.0)
 		{
 			rate += 1.0;
 		}
@@ -137,7 +138,7 @@ int main(int argc, char *argv[])
 
 	//Show the execution time
 	cout << "#     Total execution time: " << (t6 - t1) / (double)(CLOCKS_PER_SEC) << endl;
-	system("pause");
+	//system("pause");
 
 	return 0;
 }

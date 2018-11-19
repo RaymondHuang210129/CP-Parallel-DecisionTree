@@ -2,6 +2,7 @@
 #include "Header.h"
 #include <string>
 #include <cstring>
+#include <algorithm>
 using namespace std;
 
 DataTypeConverter::DataTypeConverter()
@@ -32,7 +33,7 @@ vector<vector<double>> DataTypeConverter::convertToDouble(vector<vector<string>>
 				//A string is not present
 				convertedInput[i][j] = buffer;
 			}
-			catch (const invalid_argument&) //A string is present
+			catch (exception& e) //A string is present
 			{
 				//find the string inside the encode vector and get its index 
 				ptrdiff_t pos = distance(table[j].begin(), find(table[j].begin(), table[j].end(), input[i][j])); 
