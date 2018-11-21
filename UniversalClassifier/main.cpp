@@ -5,6 +5,7 @@
 #include <time.h>
 #include <vector>
 #include <cmath>
+#include <chrono>
 
 
 using namespace std;
@@ -53,7 +54,7 @@ int main(int argc, char *argv[])
 	}
 
 	//Start the timer
-	clock_t t1 = clock();
+	auto t1 = chrono::high_resolution_clock::now();
 	//Split a ine into strings
 	cout << "#     Splitting input." << endl;
 	StringSplitter stringSplitter;
@@ -63,16 +64,17 @@ int main(int argc, char *argv[])
 		splitedInput.push_back(stringSplitter.parseString(rawInput[i]));
 	}
 	cout << "#        > Dataset contains " << splitedInput.size() << " data and " << splitedInput[0].size() - 1 << " features each" << endl;
-	clock_t t2 = clock();
-	cout << "#        > Execution time: " << (t2 - t1) / (double)(CLOCKS_PER_SEC) << " sec" << endl;
+	auto t2 = chrono::high_resolution_clock::now();
+	//cout << "#        > Execution time: " << (t2 - t1) / (double)(CLOCKS_PER_SEC) << " sec" << endl;
+	cout << "#        > Execution time: " << chrono::duration_cast<chrono::microseconds>(t2 - t1).count() / (double)1000000 << " sec" << endl;
 
 	//Convert all values into double, including strings, ints, and double
 	cout << "#     Convert all features into double." << endl;
 	DataTypeConverter dataTypeConverter;
 	convertedInput = dataTypeConverter.convertToDouble(splitedInput);
 
-	clock_t t3 = clock();
-	cout << "#        > Execution time: " << (t3 - t2) / (double)(CLOCKS_PER_SEC) << " sec" << endl;
+	auto t3 = chrono::high_resolution_clock::now();
+	cout << "#        > Execution time: " << chrono::duration_cast<chrono::microseconds>(t3 - t2).count() / (double)1000000 << " sec" << endl;
 	//Shuffle the dataset
 	cout << "#     Shuffling dataset." << endl;
 	DatasetShuffler datasetShuffler;
@@ -82,21 +84,21 @@ int main(int argc, char *argv[])
 	trainDataset.assign(convertedInput.begin(), convertedInput.begin() + (convertedInput.size() / 2));
 	validationDataset.assign(convertedInput.begin() + (convertedInput.size() / 2), convertedInput.end());
 
-	clock_t t4 = clock();
+	auto t4 = chrono::high_resolution_clock::now();
 	//Construct random forest
 	cout << "#     Constructing random forest with 64 trees and randomly select sqrt(#) features each." << endl;
 	cout << "#";
 	vector<Node*>  trees = RandomForestCreater(trainDataset);
 	cout << endl;
-	clock_t t5 = clock();
-	cout << "#        > Execution time: " << (t5 - t4) / (double)(CLOCKS_PER_SEC) << " sec" << endl;
+	auto t5 = chrono::high_resolution_clock::now();
+	cout << "#        > Execution time: " << chrono::duration_cast<chrono::microseconds>(t5 - t4).count() / (double)1000000 << " sec" << endl;
 
 	//Validate tree
 	cout << "#     Validating." << endl;
 	Validator validator;
 	result = validator.getResult(trees, validationDataset);
-	clock_t t6 = clock();
-	cout << "#        > Execution time: " << (t6 - t5) / (double)(CLOCKS_PER_SEC) << " sec" << endl;
+	auto t6 = chrono::high_resolution_clock::now();
+	cout << "#        > Execution time: " << chrono::duration_cast<chrono::microseconds>(t6 - t5).count() / (double)1000000 << " sec" << endl;
 
 	
 
@@ -137,7 +139,7 @@ int main(int argc, char *argv[])
 	cout << "#     Classfication +-2 (for regression-like dataset): " << rate * 100.0 << " %" << endl;
 
 	//Show the execution time
-	cout << "#     Total execution time: " << (t6 - t1) / (double)(CLOCKS_PER_SEC) << endl;
+	cout << "#     Total execution time: " << chrono::duration_cast<chrono::microseconds>(t6 - t1).count() / (double)1000000 << " sec" << endl;
 	//system("pause");
 
 	return 0;
