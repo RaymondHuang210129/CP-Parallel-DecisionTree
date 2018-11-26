@@ -26,6 +26,7 @@ vector<Node*> RandomForestCreater(vector<vector<double>> dataset)
 	for (int i = 0; i < dataset[0].size() - 1; i++) features[i] = i;
 
 //#pragma omp parallel for
+	
 
 	for (int i = 0; i < numTree; i++)
 	{
