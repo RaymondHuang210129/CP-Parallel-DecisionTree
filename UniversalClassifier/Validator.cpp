@@ -20,7 +20,7 @@ vector<vector<double>> Validator::getResult(vector<Node*> trees, vector<vector<d
 
 	//vote data structure, initalize to 0 for all classes
 	
-//#pragma omp parallel for
+#pragma omp parallel for
 	for (int i = 0; i < dataset.size(); i++)
 	{
 		vector<int> vote(dataset.size() - 1, 0);
@@ -45,8 +45,6 @@ vector<vector<double>> Validator::getResult(vector<Node*> trees, vector<vector<d
 		}
 
 		//find the class with maximum vote and put into result
-		//result[i][0]:predict
-		//result[i][1]:actual_answer
 		result[i] = { (double)distance(vote.begin(), max_element(vote.begin(), vote.end())), dataset[i][dataset[0].size() - 1] };
 
 	}
