@@ -20,6 +20,7 @@ class DataTypeConverter
 public:
 	DataTypeConverter();
 	vector<vector<double>> convertToDouble(vector<vector<string>>);
+	int size(int);
 private:
 	int totalIndex;
 	int totalTransition;
@@ -42,7 +43,7 @@ class Validator
 {
 public:
 	Validator();
-	vector<vector<double>> getResult(vector<struct Node*>, vector<vector<double>>);
+	vector<vector<double>> getResult(vector<struct Node*>, vector<vector<double>>, int, int, int);
 };
 
 //Usage: recursively constructing tree
@@ -59,5 +60,5 @@ struct Node
 	double leafClass;
 };
 
-vector<Node*> RandomForestCreater(vector<vector<double>>);
+vector<Node*> RandomForestCreater(vector<vector<double>>, int, int);
 

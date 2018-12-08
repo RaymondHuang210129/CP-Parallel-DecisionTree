@@ -12,18 +12,18 @@ Validator::Validator()
 }
 
 
-vector<vector<double>> Validator::getResult(vector<Node*> trees, vector<vector<double>> dataset)
+vector<vector<double>> Validator::getResult(vector<Node*> trees, vector<vector<double>> dataset, int mpiSize, int mpiRank, int numClass)
 {
 	//result: 0->prediction 1->fact
 	vector<vector<double>> result;
-	result.resize(dataset.size());
 
 	//vote data structure, initalize to 0 for all classes
 	
-#pragma omp parallel for
 	for (int i = 0; i < dataset.size(); i++)
 	{
-		vector<int> vote(dataset.size() - 1, 0);
+		//Init vote vector to 0
+		vector<double> vote(numClass, 0);
+
 		//Iterate with different trees
 		for (int j = 0; j < trees.size(); j++)
 		{
@@ -33,8 +33,9 @@ vector<vector<double>> Validator::getResult(vector<Node*> trees, vector<vector<d
 			{
 				if (currentLocation->isLeaf)//Reach the leaf
 				{
-					//vote
-					vote[currentLocation->leafClass]++;
+					//vote (position = class)
+					//cout << i << " " << mpiRank << " " << currentLocation->leafClass << " " << j << endl;
+					vote[currentLocation->leafClass] += 1.0;
 					break;
 				}
 				if (dataset[i][currentLocation->selectedFeature] > currentLocation->gapValue)
@@ -44,8 +45,8 @@ vector<vector<double>> Validator::getResult(vector<Node*> trees, vector<vector<d
 			}
 		}
 
-		//find the class with maximum vote and put into result
-		result[i] = { (double)distance(vote.begin(), max_element(vote.begin(), vote.end())), dataset[i][dataset[0].size() - 1] };
+		//return vote result (not calculated)
+		result.push_back(vote);
 
 	}
 	return result;

@@ -21,7 +21,7 @@ vector<vector<double>> DataTypeConverter::convertToDouble(vector<vector<string>>
 	{
 		convertedInput[i].resize(totalIndex);
 	}
-#pragma omp parallel for
+//#pragma omp parallel for
 	for (int j = 0; j < totalIndex; j++)
 	{
 		//using stod() with try and catch to know that whether a value is a number or not
@@ -31,6 +31,19 @@ vector<vector<double>> DataTypeConverter::convertToDouble(vector<vector<string>>
 			{
 				buffer = stod(input[i][j]);
 				//A string is not present
+				if (j == totalIndex - 1)//Inorder to count # of the classes, force encode the class no mater it is string or not
+				{
+					ptrdiff_t pos = distance(table[j].begin(), find(table[j].begin(), table[j].end(), input[i][j]));
+					if (pos >= table[j].size())
+					{
+						table[j].push_back(input[i][j]);
+						convertedInput[i][j] = (double)pos;
+					}
+					else
+					{
+						convertedInput[i][j] = (double)pos;
+					}
+				}
 				convertedInput[i][j] = buffer;
 			}
 			catch (exception& e) //A string is present
@@ -54,4 +67,9 @@ vector<vector<double>> DataTypeConverter::convertToDouble(vector<vector<string>>
 	}
 
 	return convertedInput;
+}
+
+int DataTypeConverter::size(int feature)
+{
+	return table[feature].size();
 }

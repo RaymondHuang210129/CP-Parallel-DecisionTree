@@ -6,11 +6,10 @@
 #include <random>
 
 //Create random forest
-vector<Node*> RandomForestCreater(vector<vector<double>> dataset)
+vector<Node*> RandomForestCreater(vector<vector<double>> dataset, int mpiSize, int mpiRank)
 {
 	random_device rd;
 	default_random_engine gen = default_random_engine(rd());
-	
 	
 	
 	//State the number to be selected for each tree
@@ -19,15 +18,12 @@ vector<Node*> RandomForestCreater(vector<vector<double>> dataset)
 	int numTree = 64;
 
 	vector<Node*> trees;
-	trees.resize(numTree);
 
 	//randomly select features (non-duplicate)
 	vector<int> features(dataset[0].size() - 1);
 	for (int i = 0; i < dataset[0].size() - 1; i++) features[i] = i;
 
-//#pragma omp parallel for
-
-	for (int i = 0; i < numTree; i++)
+	for (int i = mpiRank; i < numTree; i += mpiSize)
 	{
 		//generate a list of selected features
 		vector<int> features2 = features;
@@ -42,7 +38,7 @@ vector<Node*> RandomForestCreater(vector<vector<double>> dataset)
 			selectedSample.push_back(dataset[dis(gen)]);
 		}
 		cout << "-" << flush;
-		trees[i] = ConstructTree(dataset, 0, "entropy", selectedFeature);
+		trees.push_back(ConstructTree(dataset, 0, "entropy", selectedFeature));
 	}
 
 	return trees;
