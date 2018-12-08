@@ -73,7 +73,6 @@ int main(int argc, char *argv[])
 	string buffer;
 	ifstream input;
 	input.open(argv[1]);
-	chrono::time_point<chrono::steady_clock> t1, t2, t3, t4, t5, t6;
 	int numClass;
 
 	if (mpiRank == 0)
@@ -103,7 +102,7 @@ int main(int argc, char *argv[])
 		}
 
 		//Start the timer
-		t1 = chrono::high_resolution_clock::now();
+		auto t1 = chrono::high_resolution_clock::now();
 		//Split a ine into strings
 		cout << "#     Splitting input." << endl;
 		StringSplitter stringSplitter;
@@ -113,7 +112,7 @@ int main(int argc, char *argv[])
 			splitedInput.push_back(stringSplitter.parseString(rawInput[i]));
 		}
 		cout << "#        > Dataset contains " << splitedInput.size() << " data and " << splitedInput[0].size() - 1 << " features each" << endl;
-		t2 = chrono::high_resolution_clock::now();
+		auto t2 = chrono::high_resolution_clock::now();
 		//cout << "#        > Execution time: " << (t2 - t1) / (double)(CLOCKS_PER_SEC) << " sec" << endl;
 		cout << "#        > Execution time: " << chrono::duration_cast<chrono::microseconds>(t2 - t1).count() / (double)1000000 << " sec" << endl;
 
@@ -122,7 +121,7 @@ int main(int argc, char *argv[])
 		DataTypeConverter dataTypeConverter;
 		convertedInput = dataTypeConverter.convertToDouble(splitedInput);
 
-		t3 = chrono::high_resolution_clock::now();
+		auto t3 = chrono::high_resolution_clock::now();
 		numClass = dataTypeConverter.size(convertedInput[0].size() - 1);
 		cout << "#        > " << numClass << " kind of classes" << endl;
 		cout << "#        > Execution time: " << chrono::duration_cast<chrono::microseconds>(t3 - t2).count() / (double)1000000 << " sec" << endl;
@@ -150,11 +149,11 @@ int main(int argc, char *argv[])
 		//Construct random forest
 		cout << "#     Constructing random forest with 64 trees and randomly select sqrt(#) features each." << endl;
 		cout << "#";
-		t4 = chrono::high_resolution_clock::now();
+		auto t4 = chrono::high_resolution_clock::now();
 
 		vector<Node*>  trees = RandomForestCreater(trainDataset, mpiSize, mpiRank);
 		
-		t5 = chrono::high_resolution_clock::now();
+		auto t5 = chrono::high_resolution_clock::now();
 		cout << endl;
 		cout << "#        > Execution time: " << chrono::duration_cast<chrono::microseconds>(t5 - t4).count() / (double)1000000 << " sec" << endl;
 		//Validate tree
@@ -165,7 +164,7 @@ int main(int argc, char *argv[])
 		cout << "#     Validating." << endl;
 		Validator validator;
 		statistic = validator.getResult(trees, validationDataset, mpiSize, mpiRank, dataTypeConverter.size(validationDataset[0].size() - 1));
-		t6 = chrono::high_resolution_clock::now();
+		auto t6 = chrono::high_resolution_clock::now();
 		cout << "#        > Execution time: " << chrono::duration_cast<chrono::microseconds>(t6 - t5).count() / (double)1000000 << " sec" << endl;
 
 
