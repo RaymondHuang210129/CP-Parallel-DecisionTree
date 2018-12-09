@@ -56,10 +56,11 @@ vector<Node*> RandomForestCreater(vector<vector<double>> dataset)
 	for (int i = 0; i < dataset[0].size() - 1; i++) features[i] = i;
 
 //#pragma omp parallel for
-		parameter_for_function *input_for_function_ptr[4];
+		parameter_for_function *input_for_function_ptr[MAX_CORE];
 		for(int k=0;k<MAX_CORE;k++){
 		input_for_function_ptr[k]= new parameter_for_function(features,numSelectFeature,dataset,k,numTree,gen);
-		pthread_create(&thread_id[k], NULL, &for_loop_creation , input_for_function_ptr[k]);	
+		int t=k;
+		pthread_create(&thread_id[t], NULL, &for_loop_creation , input_for_function_ptr[t]);	
 		}
 
 	/*for (int i = 0; i < numTree; i++)	//input:feature,numselect,feature,dataset
@@ -91,9 +92,10 @@ vector<Node*> RandomForestCreater(vector<vector<double>> dataset)
 void *for_loop_creation(void *input_for_function_param){
 	parameter_for_function * input_for_function=(parameter_for_function *)input_for_function_param;
 	//for (int i = ceil(input_for_function->numTree/MAX_CORE)*(input_for_function->id); i < ceil(input_for_function->numTree/MAX_CORE)*(input_for_function->id+1); i++)	//input:feature,numselect,feature,dataset
-	for(int i=input_for_function->id; i<64;i+=MAX_CORE)
+	for(int i=input_for_function->id; i<(input_for_function->numTree); i+=MAX_CORE)
 	{
 		//generate a list of selected features
+		//printf("%d\t",i);
 		vector<int> features2 = input_for_function->features;
 		shuffle(features2.begin(), features2.end(), input_for_function->gen);
 		vector<int> selectedFeature(features2.begin(), features2.begin() + input_for_function->numSelectFeature);
