@@ -38,7 +38,7 @@ vector<Node*> RandomForestCreater(vector<vector<double>> dataset, int mpiSize, i
 			selectedSample.push_back(dataset[dis(gen)]);
 		}
 		cout << "-" << flush;
-		trees.push_back(ConstructTree(dataset, 0, "entropy", selectedFeature));
+		trees.push_back(ConstructTree(selectedSample, 0, "entropy", selectedFeature));
 	}
 
 	return trees;
