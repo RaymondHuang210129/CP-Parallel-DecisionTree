@@ -25,7 +25,7 @@ vector<Node*> RandomForestCreater(vector<vector<double>> dataset)
 	vector<int> features(dataset[0].size() - 1);
 	for (int i = 0; i < dataset[0].size() - 1; i++) features[i] = i;
 
-//#pragma omp parallel for
+#pragma omp parallel for
 
 	for (int i = 0; i < numTree; i++)
 	{
@@ -42,7 +42,7 @@ vector<Node*> RandomForestCreater(vector<vector<double>> dataset)
 			selectedSample.push_back(dataset[dis(gen)]);
 		}
 		cout << "-" << flush;
-		trees[i] = ConstructTree(dataset, 0, "entropy", selectedFeature);
+		trees[i] = ConstructTree(selectedSample, 0, "entropy", selectedFeature);
 	}
 
 	return trees;
