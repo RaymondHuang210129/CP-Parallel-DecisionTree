@@ -6,7 +6,7 @@
 #include <random>
 #include <semaphore.h>
 #include <pthread.h>
-#define MAX_CORE 4
+#define MAX_CORE 12
 
 pthread_t thread_id[MAX_CORE];
 
@@ -90,7 +90,8 @@ vector<Node*> RandomForestCreater(vector<vector<double>> dataset)
 
 void *for_loop_creation(void *input_for_function_param){
 	parameter_for_function * input_for_function=(parameter_for_function *)input_for_function_param;
-	for (int i = ceil(input_for_function->numTree/MAX_CORE)*(input_for_function->id); i < ceil(input_for_function->numTree/MAX_CORE)*(input_for_function->id+1); i++)	//input:feature,numselect,feature,dataset
+	//for (int i = ceil(input_for_function->numTree/MAX_CORE)*(input_for_function->id); i < ceil(input_for_function->numTree/MAX_CORE)*(input_for_function->id+1); i++)	//input:feature,numselect,feature,dataset
+	for(int i=input_for_function->id; i<64;i+=MAX_CORE)
 	{
 		//generate a list of selected features
 		vector<int> features2 = input_for_function->features;
@@ -105,7 +106,7 @@ void *for_loop_creation(void *input_for_function_param){
 			selectedSample.push_back(input_for_function->dataset[dis(input_for_function->gen)]);
 		}
 		cout << "-" << flush;
-		trees[i] = ConstructTree(input_for_function->dataset, 0, "entropy", selectedFeature);
+		trees[i] = ConstructTree(selectedSample, 0, "entropy", selectedFeature);
 	}
 	return NULL;
 }
