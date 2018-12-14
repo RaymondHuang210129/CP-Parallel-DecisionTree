@@ -21,7 +21,7 @@ vector<vector<double>> DataTypeConverter::convertToDouble(vector<vector<string>>
 	{
 		convertedInput[i].resize(totalIndex);
 	}
-//#pragma omp parallel for
+#pragma omp parallel for
 	for (int j = 0; j < totalIndex; j++)
 	{
 		//using stod() with try and catch to know that whether a value is a number or not

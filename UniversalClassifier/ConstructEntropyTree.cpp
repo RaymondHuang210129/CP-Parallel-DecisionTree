@@ -38,6 +38,7 @@ Info CalculateGain(vector<vector<double>> dataset, string mode, vector<int> sele
 	vector<double> counts;
 	counts.reserve(5000);
 	int classPosition = dataset[0].size() - 1;
+//#pragma omp parallel for
 	for (int i = 0; i < dataset.size(); i++)
 	{
 		if (dataset[i][classPosition] >= counts.size())
@@ -84,6 +85,7 @@ Info CalculateGain(vector<vector<double>> dataset, string mode, vector<int> sele
 	}
 
 	//Iterate with different features
+//#pragma omp parallel for
 	for (int i = 0; i < selectedFeature.size(); i++)
 	{
 		//Sort the dataset with specific feature
@@ -152,6 +154,7 @@ Info CalculateGain(vector<vector<double>> dataset, string mode, vector<int> sele
 	//Find the maximum gain then get it's feature, gap position and gap value
 	struct Info info;
 	double maxGain = 0.0;
+
 	for (int i = 0; i < gains.size(); i++)
 	{
 		for (int j = 0; j < gains[0].size(); j++)
@@ -202,9 +205,11 @@ struct Node *ConstructTree(vector<vector<double>> dataset, int layer, string mod
 	thisNode->layer = layer;
 	vector<vector<double>> lowerData(dataset.begin(), dataset.begin() + info.gapPosition + 1);
 	vector<vector<double>> higherData(dataset.begin() + info.gapPosition + 1, dataset.end());
-	thisNode->lowerNode = ConstructTree(lowerData, layer + 1, mode, selectedFeature);
-	thisNode->higherNode = ConstructTree(higherData, layer + 1, mode, selectedFeature);
-
+#pragma omp parallel
+	{
+		thisNode->lowerNode = ConstructTree(lowerData, layer + 1, mode, selectedFeature);
+		thisNode->higherNode = ConstructTree(higherData, layer + 1, mode, selectedFeature);
+	}
 	return thisNode;
 	
 }

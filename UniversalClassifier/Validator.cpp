@@ -17,7 +17,7 @@ vector<vector<double>> Validator::getResult(Node* tree, vector<vector<double>> d
 	//result: 0->prediction 1->fact
 	vector<vector<double>> result;
 	result.resize(dataset.size());
-
+#pragma omp parallel for
 	for (int i = 0; i < dataset.size(); i++)
 	{
 		//Start from the root of tree
