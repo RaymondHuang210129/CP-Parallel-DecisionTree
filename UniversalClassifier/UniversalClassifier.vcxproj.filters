@@ -47,8 +47,5 @@
     <ClCompile Include="Validator.cpp">
       <Filter>來源檔案</Filter>
     </ClCompile>
-    <ClCompile Include="RandomForestCreater.cpp">
-      <Filter>來源檔案</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>

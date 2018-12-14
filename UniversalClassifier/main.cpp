@@ -85,10 +85,13 @@ int main(int argc, char *argv[])
 	validationDataset.assign(convertedInput.begin() + (convertedInput.size() / 2), convertedInput.end());
 
 	auto t4 = chrono::high_resolution_clock::now();
-	//Construct random forest
-	cout << "#     Constructing random forest with 64 trees and randomly select sqrt(#) features each." << endl;
+	//Construct Decision Tree
+	cout << "#     Constructing decision tree." << endl;
 	cout << "#";
-	vector<Node*>  trees = RandomForestCreater(trainDataset);
+	vector<int> selectedFeature(trainDataset[0].size());
+	for (int i = 0; i < trainDataset[0].size() - 1; i++) selectedFeature[i] = i;
+	Node* tree = ConstructTree(trainDataset, 0, "entropy", selectedFeature);
+	//vector<Node*>  trees = RandomForestCreater(trainDataset);
 	cout << endl;
 	auto t5 = chrono::high_resolution_clock::now();
 	cout << "#        > Execution time: " << chrono::duration_cast<chrono::microseconds>(t5 - t4).count() / (double)1000000 << " sec" << endl;
@@ -96,7 +99,7 @@ int main(int argc, char *argv[])
 	//Validate tree
 	cout << "#     Validating." << endl;
 	Validator validator;
-	result = validator.getResult(trees, validationDataset);
+	result = validator.getResult(tree, validationDataset);
 	auto t6 = chrono::high_resolution_clock::now();
 	cout << "#        > Execution time: " << chrono::duration_cast<chrono::microseconds>(t6 - t5).count() / (double)1000000 << " sec" << endl;
 

@@ -42,7 +42,7 @@ class Validator
 {
 public:
 	Validator();
-	vector<vector<double>> getResult(vector<struct Node*>, vector<vector<double>>);
+	vector<vector<double>> getResult(struct Node*, vector<vector<double>>);
 };
 
 //Usage: recursively constructing tree
@@ -59,5 +59,5 @@ struct Node
 	double leafClass;
 };
 
-vector<Node*> RandomForestCreater(vector<vector<double>>);
+
 

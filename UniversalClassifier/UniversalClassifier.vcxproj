@@ -223,7 +223,6 @@
     <ClCompile Include="ConstructEntropyTree.cpp" />
     <ClCompile Include="DatasetShuffler.cpp" />
     <ClCompile Include="DataTypeConverter.cpp" />
-    <ClCompile Include="RandomForestCreater.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
