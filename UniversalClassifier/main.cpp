@@ -90,7 +90,15 @@ int main(int argc, char *argv[])
 	cout << "#";
 	vector<int> selectedFeature(trainDataset[0].size());
 	for (int i = 0; i < trainDataset[0].size() - 1; i++) selectedFeature[i] = i;
-	Node* tree = ConstructTree(trainDataset, 0, "entropy", selectedFeature);
+
+	struct parameters pa;
+	pa.dataset = trainDataset;
+	pa.layer=0;
+	pa.mode = "entropy";
+	pa.selectedFeature = selectedFeature;
+
+	Node* tree = (Node *)ConstructTree(pa);
+
 	//vector<Node*>  trees = RandomForestCreater(trainDataset);
 	cout << endl;
 	auto t5 = chrono::high_resolution_clock::now();

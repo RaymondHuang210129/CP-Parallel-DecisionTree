@@ -46,7 +46,7 @@ public:
 };
 
 //Usage: recursively constructing tree
-struct Node* ConstructTree(vector<vector<double>>, int, string, vector<int>);
+void* ConstructTree(struct parameters param);
 
 struct Node
 {
@@ -59,5 +59,10 @@ struct Node
 	double leafClass;
 };
 
-
+struct parameters{
+vector<vector<double>> dataset;
+int layer;
+string mode;
+vector<int> selectedFeature;
+};
 
