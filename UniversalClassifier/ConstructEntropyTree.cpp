@@ -5,7 +5,7 @@
 #include <iostream>
 #include <cmath>
 #include <semaphore.h>
-#define THREAD_NUM 4
+#define THREAD_NUM 12
 
 using namespace std;
 
@@ -103,9 +103,9 @@ void *calculate_function(void *param1){
 			double remainder = ((highData.size() / (double)param->dataset.size()) * highEntropy) + ((lowData.size() / (double)param->dataset.size()) * lowEntropy);
 			//Calculate gain
 			//printf("end of forloop\n");
-			sem_wait(&mutex);
+			//sem_wait(&mutex);
 			gains[j][param->selectedFeature[param->i]] = param->entropy - remainder; //Again, gain[split place][feature]
-			sem_post(&mutex);
+			//sem_post(&mutex);
 		}
 }
 
