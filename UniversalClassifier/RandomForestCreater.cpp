@@ -6,7 +6,7 @@
 #include <random>
 #include <semaphore.h>
 #include <pthread.h>
-#define MAX_CORE 12
+#define MAX_CORE 1
 
 pthread_t thread_id[MAX_CORE];
 
