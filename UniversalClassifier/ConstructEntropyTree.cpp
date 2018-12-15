@@ -171,18 +171,22 @@ Info CalculateGain(vector<vector<double>> dataset, string mode, vector<int> sele
 
 
 //
-void *ConstructTree(struct parameters param)
+void *ConstructTree(void* param1)
 {
-	
+	struct parameters *param = (struct parameters *)param1;
 	struct Node* thisNode = new Node;
-	struct parameters Left,Right; 
+	struct parameters *Left= new parameters;
+	struct parameters *Right=new parameters; 
+	pthread_t Left_t , Right_t;
+	void *temp_ptr1;
+	void *temp_ptr2;
 
 	//Check whether is leaf or not, if yes, return
 	thisNode->isLeaf = true;
-	for (int i = 1; i < param.dataset.size(); i++)
+	for (int i = 1; i < param->dataset.size(); i++)
 	{
 		//Check whether last class != this class 
-		if (param.dataset[i][param.dataset[i].size() - 1] != param.dataset[i - 1][param.dataset[i - 1].size() - 1])
+		if (param->dataset[i][param->dataset[i].size() - 1] != param->dataset[i - 1][param->dataset[i - 1].size() - 1])
 		{
 			thisNode->isLeaf = false;
 			break;
@@ -190,37 +194,46 @@ void *ConstructTree(struct parameters param)
 	}
 	if (thisNode->isLeaf == true)
 	{
-		thisNode->leafClass = param.dataset[0][param.dataset[0].size() - 1];
+		thisNode->leafClass = param->dataset[0][param->dataset[0].size() - 1];
 		return (void *)thisNode;
 	}
 
 	//Get the selected feature and split position which have maximum gain
-	Info info = CalculateGain(param.dataset, param.mode, param.selectedFeature);
+	Info info = CalculateGain(param->dataset, param->mode, param->selectedFeature);
 
 	//Split the dataset into higher and lower part, and complete this node's properties.
-	sort(param.dataset.begin(), param.dataset.end(), Compare(info.selectedFeature));
-	thisNode->gapValue = param.dataset[info.gapPosition][info.selectedFeature];
+	sort(param->dataset.begin(), param->dataset.end(), Compare(info.selectedFeature));
+	thisNode->gapValue = param->dataset[info.gapPosition][info.selectedFeature];
 	thisNode->selectedFeature = info.selectedFeature;
-	thisNode->layer = param.layer;
+	thisNode->layer = param->layer;
 
-	vector<vector<double>> higher_data(param.dataset.begin(), param.dataset.begin() + info.gapPosition + 1);
-	vector<vector<double>> lower_data(param.dataset.begin() + info.gapPosition + 1, param.dataset.end());
-
-
-	Left.dataset = lower_data;
-	Right.dataset = higher_data;
+	vector<vector<double>> lower_data(param->dataset.begin(), param->dataset.begin() + info.gapPosition + 1);
+	vector<vector<double>> higher_data(param->dataset.begin() + info.gapPosition + 1, param->dataset.end());
 
 
-	Left.layer=Right.layer = param.layer+1;
-	Left.mode =Right.mode = param.mode;
-	Left.selectedFeature = Right.selectedFeature = param.selectedFeature;
+	Left->dataset = lower_data;
+	Right->dataset = higher_data;
+
+
+	Left->layer=Right->layer = param->layer+1;
+	Left->mode =Right->mode = param->mode;
+	Left->selectedFeature = Right->selectedFeature = param->selectedFeature;
 
 	
-	thisNode->lowerNode = (struct Node*)ConstructTree(Left);
-	thisNode->higherNode = (struct Node*)ConstructTree(Right);
+   pthread_create(&Left_t, NULL, ConstructTree,(void *)Left);
+   pthread_create(&Right_t, NULL, ConstructTree,(void *)Right);
+
+   pthread_join(Left_t, &temp_ptr1);
+   pthread_join(Right_t, &temp_ptr2);
+
+   thisNode->lowerNode=(struct Node*)temp_ptr1;
+   thisNode->higherNode=(struct Node*)temp_ptr2;
+
+	/*thisNode->lowerNode = (struct Node*)ConstructTree(Left);
+	thisNode->higherNode = (struct Node*)ConstructTree(Right);*/
 
 
-
+	delete Right,Left;
 	return (void *)thisNode;
 	
 } //vector<vector<double>> dataset, int layer, string mode, vector<int> selectedFeature

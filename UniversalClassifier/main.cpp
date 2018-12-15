@@ -6,6 +6,7 @@
 #include <vector>
 #include <cmath>
 #include <chrono>
+#include <pthread.h>
 
 
 using namespace std;
@@ -91,14 +92,15 @@ int main(int argc, char *argv[])
 	vector<int> selectedFeature(trainDataset[0].size());
 	for (int i = 0; i < trainDataset[0].size() - 1; i++) selectedFeature[i] = i;
 
-	struct parameters pa;
-	pa.dataset = trainDataset;
-	pa.layer=0;
-	pa.mode = "entropy";
-	pa.selectedFeature = selectedFeature;
+	struct parameters *pa = new parameters;
+	pa->dataset = trainDataset;
+	pa->layer=0;
+	pa->mode = "entropy";
+	pa->selectedFeature = selectedFeature;
 
 	Node* tree = (Node *)ConstructTree(pa);
 
+	delete pa;
 	//vector<Node*>  trees = RandomForestCreater(trainDataset);
 	cout << endl;
 	auto t5 = chrono::high_resolution_clock::now();

@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include <cstring>
+#include <pthread.h>
 using namespace std;
 
 //Usage: input: a line, output: string vector
@@ -46,7 +47,7 @@ public:
 };
 
 //Usage: recursively constructing tree
-void* ConstructTree(struct parameters param);
+void* ConstructTree(void* param);
 
 struct Node
 {
