@@ -21,11 +21,9 @@ struct parameters{
 	string mode;
 	int i;
 	vector<int> selectedFeature;
-	vector<vector<double>> &gains;
-	parameters (vector<vector<double>> &arg1):gains(arg1) {}
 };
 
-
+vector<vector<double>> gains;
 sem_t mutex;
 
 //Usage: passing values with best gain
@@ -106,7 +104,7 @@ void *calculate_function(void *param1){
 			//Calculate gain
 			//printf("end of forloop\n");
 			//sem_wait(&mutex);
-			param->gains[j][param->selectedFeature[param->i]] = param->entropy - remainder; //Again, gain[split place][feature]
+			gains[j][param->selectedFeature[param->i]] = param->entropy - remainder; //Again, gain[split place][feature]
 			//sem_post(&mutex);
 		}
 }
@@ -114,7 +112,7 @@ void *calculate_function(void *param1){
 //Usage: Find a best way to split dataset with specific feature
 Info CalculateGain(vector<vector<double>> dataset, string mode, vector<int> selectedFeature)
 {
-	vector<vector<double>> gains;
+	
 	gains.clear();
 	sem_init (&mutex,0,1);
 	//Calculate each classes' count to get percentage (for whole dataset)
@@ -177,7 +175,7 @@ Info CalculateGain(vector<vector<double>> dataset, string mode, vector<int> sele
 		pthread_t p_t[THREAD_NUM];
 
 		for(int u=0;u<THREAD_NUM;u++){
-		param[u] = new parameters(gains);
+		param[u] = new parameters;
 
 		param[u]->counts= counts;
 		param[u]-> dataset = dataset;
