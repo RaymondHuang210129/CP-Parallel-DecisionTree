@@ -4,6 +4,8 @@
 #include <algorithm>
 #include <iostream>
 #include <cmath>
+#include <omp.h>
+#define OMP_THREAD 4
 
 using namespace std;
 
@@ -88,12 +90,17 @@ Info CalculateGain(vector<vector<double>> dataset, string mode, vector<int> sele
 	{
 		//Sort the dataset with specific feature
 		sort(dataset.begin(), dataset.end(), Compare(selectedFeature[i]));
+		omp_set_num_threads(OMP_THREAD);
+		//printf("%d\n",omp_get_num_threads());
 #pragma omp parallel for		
 		//Iterate with different changed points
 		for (int j = 0; j < dataset.size() - 1; j++)
 		{
 			if (dataset[j][classPosition] == dataset[j + 1][classPosition]) continue;
-
+			
+			
+				
+				
 			//Split data into lower part and higher part according to the class changed location (not going to get gap value)
 			vector<vector<double>> lowData(dataset.begin(), dataset.begin() + j + 1);
 			vector<vector<double>> highData(dataset.begin() + j + 1, dataset.end());
