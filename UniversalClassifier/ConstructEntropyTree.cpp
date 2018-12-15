@@ -4,12 +4,27 @@
 #include <algorithm>
 #include <iostream>
 #include <cmath>
+#include <semaphore.h>
+#define THREAD_NUM 4
 
 using namespace std;
 
 //Usage: node of the tree
 
+struct parameters{
+	vector<double> counts;	//read only,not write
+	//vector<vector<double>> *gains_ptr;		//also write , so I use a pointer
+	vector<vector<double>> dataset;
+	int thread_id;
+	int class_position;
+	double entropy;
+	string mode;
+	int i;
+	vector<int> selectedFeature;
+};
 
+vector<vector<double>> gains;
+sem_t mutex;
 
 //Usage: passing values with best gain
 struct Info
@@ -29,11 +44,77 @@ struct Compare
 	}
 };
 
+
+void *calculate_function(void *param1){
+	struct parameters *param = (struct parameters*) param1;
+	for (int j=param->thread_id; j < param->dataset.size()-1; j+=THREAD_NUM)
+		{
+			if (param->dataset[j][param->class_position] == param->dataset[j + 1][param->class_position]) continue;
+
+			//Split data into lower part and higher part according to the class changed location (not going to get gap value)
+			vector<vector<double>> lowData(param->dataset.begin(), param->dataset.begin() + j + 1);
+			vector<vector<double>> highData(param->dataset.begin() + j + 1, param->dataset.end());
+			
+			//Calculate each classes' percentage for lower part and higher part
+			vector<double> lowCount, highCount;
+			lowCount.resize(param->counts.size());
+			highCount.resize(param->counts.size());
+			for (int k = 0; k < param->counts.size(); k++)
+			{
+				lowCount[k] = 0.0;
+				highCount[k] = 0.0;
+			}
+			for (int k = 0; k < lowData.size(); k++)
+			{
+				lowCount[lowData[k][param->class_position]] += 1.0;
+			}
+			for (int k = 0; k < highData.size(); k++)
+			{
+				highCount[highData[k][param->class_position]] += 1.0;
+			}
+			for (int k = 0; k < param->counts.size(); k++)
+			{
+				lowCount[k] /= (double)lowData.size();
+				highCount[k] /= (double)highData.size();
+			}
+
+			//Calculate lower and higher Entropy (or gini)
+			double lowEntropy = 0, highEntropy = 0;
+			if (param->mode == "entropy")
+			{
+				for (int k = 0; k < param->counts.size(); k++)
+				{
+					if (lowCount[k] != 0) lowEntropy += -(lowCount[k] * log2(lowCount[k]));
+					if (highCount[k] != 0) highEntropy += -(highCount[k] * log2(highCount[k]));
+				}
+			}
+			else if (param->mode == "gini")
+			{
+				for (int k = 0; k < param->counts.size(); k++)
+				{
+					if (lowCount[k] != 0) lowEntropy += (lowCount[k] * lowCount[k]);
+					if (highCount[k] != 0) highEntropy += (highCount[k] * highCount[k]);
+				}
+				lowEntropy = 1.0 - lowEntropy;
+				highEntropy = 1.0 - highEntropy;
+			}
+			
+			//Calculate remainder
+			double remainder = ((highData.size() / (double)param->dataset.size()) * highEntropy) + ((lowData.size() / (double)param->dataset.size()) * lowEntropy);
+			//Calculate gain
+			//printf("end of forloop\n");
+			sem_wait(&mutex);
+			gains[j][param->selectedFeature[param->i]] = param->entropy - remainder; //Again, gain[split place][feature]
+			sem_post(&mutex);
+		}
+}
+
 //Usage: Find a best way to split dataset with specific feature
 Info CalculateGain(vector<vector<double>> dataset, string mode, vector<int> selectedFeature)
 {
 	
-	
+	gains.clear();
+	sem_init (&mutex,0,1);
 	//Calculate each classes' count to get percentage (for whole dataset)
 	vector<double> counts;
 	counts.reserve(5000);
@@ -76,7 +157,7 @@ Info CalculateGain(vector<vector<double>> dataset, string mode, vector<int> sele
 	
 	
 	//Place to store gains [split place][feature]
-	vector<vector<double>> gains;
+	
 	gains.resize(dataset.size());
 	for (int i = 0; i < dataset.size(); i++)
 	{
@@ -90,64 +171,44 @@ Info CalculateGain(vector<vector<double>> dataset, string mode, vector<int> sele
 		sort(dataset.begin(), dataset.end(), Compare(selectedFeature[i]));
 		
 		//Iterate with different changed points
-		for (int j = 0; j < dataset.size() - 1; j++)
-		{
-			if (dataset[j][classPosition] == dataset[j + 1][classPosition]) continue;
+		struct parameters *param[THREAD_NUM];
+		pthread_t p_t[THREAD_NUM];
 
-			//Split data into lower part and higher part according to the class changed location (not going to get gap value)
-			vector<vector<double>> lowData(dataset.begin(), dataset.begin() + j + 1);
-			vector<vector<double>> highData(dataset.begin() + j + 1, dataset.end());
-			
-			//Calculate each classes' percentage for lower part and higher part
-			vector<double> lowCount, highCount;
-			lowCount.resize(counts.size());
-			highCount.resize(counts.size());
-			for (int k = 0; k < counts.size(); k++)
-			{
-				lowCount[k] = 0.0;
-				highCount[k] = 0.0;
-			}
-			for (int k = 0; k < lowData.size(); k++)
-			{
-				lowCount[lowData[k][classPosition]] += 1.0;
-			}
-			for (int k = 0; k < highData.size(); k++)
-			{
-				highCount[highData[k][classPosition]] += 1.0;
-			}
-			for (int k = 0; k < counts.size(); k++)
-			{
-				lowCount[k] /= (double)lowData.size();
-				highCount[k] /= (double)highData.size();
-			}
+		for(int u=0;u<THREAD_NUM;u++){
+		param[u] = new parameters;
 
-			//Calculate lower and higher Entropy (or gini)
-			double lowEntropy = 0, highEntropy = 0;
-			if (mode == "entropy")
-			{
-				for (int k = 0; k < counts.size(); k++)
-				{
-					if (lowCount[k] != 0) lowEntropy += -(lowCount[k] * log2(lowCount[k]));
-					if (highCount[k] != 0) highEntropy += -(highCount[k] * log2(highCount[k]));
-				}
-			}
-			else if (mode == "gini")
-			{
-				for (int k = 0; k < counts.size(); k++)
-				{
-					if (lowCount[k] != 0) lowEntropy += (lowCount[k] * lowCount[k]);
-					if (highCount[k] != 0) highEntropy += (highCount[k] * highCount[k]);
-				}
-				lowEntropy = 1.0 - lowEntropy;
-				highEntropy = 1.0 - highEntropy;
-			}
-			
-			//Calculate remainder
-			double remainder = ((highData.size() / (double)dataset.size()) * highEntropy) + ((lowData.size() / (double)dataset.size()) * lowEntropy);
-			//Calculate gain
-			gains[j][selectedFeature[i]] = entropy - remainder; //Again, gain[split place][feature]
+		param[u]->counts= counts;
+		param[u]-> dataset = dataset;
+		param[u]->class_position = classPosition;
+		param[u]->entropy = entropy;
+		param[u]->mode = mode;
+		param[u]->i = i;
+		param[u]->selectedFeature = selectedFeature;
+		param[u]->thread_id=u;
+		pthread_create(&p_t[u],NULL,calculate_function,(void *)param[u]);
+		//printf("done pthread_create\n");
 		}
+
+		for(int u=0;u<THREAD_NUM;u++){
+			pthread_join(p_t[u],NULL);
+			delete param[u];
+			//printf("done pthread_join\n");
+		}
+		//delete p_t;
+		//printf("delete success");
+		//calculate_function(param);
+		
 	}
+
+
+	//printf("end of one gain\n");
+
+	/*vector<double> counts_in_thread;	//read only,not write
+	vector<vector<double>> *gains;		//also write , so I use a pointer
+	vector<vector<double>> dataset;
+	int thread_id;
+	int class_position
+	double entropy;*/
 
 	//Find the maximum gain then get it's feature, gap position and gap value
 	struct Info info;
