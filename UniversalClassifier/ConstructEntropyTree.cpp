@@ -88,7 +88,7 @@ Info CalculateGain(vector<vector<double>> dataset, string mode, vector<int> sele
 	{
 		//Sort the dataset with specific feature
 		sort(dataset.begin(), dataset.end(), Compare(selectedFeature[i]));
-		
+#pragma omp parallel for		
 		//Iterate with different changed points
 		for (int j = 0; j < dataset.size() - 1; j++)
 		{
