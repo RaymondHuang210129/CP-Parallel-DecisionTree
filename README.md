@@ -11,5 +11,5 @@ That shell script will generate a executable file named "main.out" with one para
 
 Here's the example of running our model with iris dataset.
 ```
-./build.sh %% ./main.out iris.data
+chmod +x build.sh && ./build.sh %% ./main.out iris.data
 ```
